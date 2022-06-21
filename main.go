@@ -2,9 +2,12 @@
 package main
 
 import (
+	"container/list"
 	"flag"
 	"fmt"
 	"math"
+	"sort"
+	"sync"
 )
 
 var a int = 100
@@ -39,6 +42,10 @@ func main() {
 	range_test()
 
 	map_test()
+
+	sync_map_test()
+
+	list_test()
 
 	// http.Handle("/", http.FileServer(http.Dir(".")))
 	// http.ListenAndServe(":8090", nil)
@@ -206,4 +213,81 @@ func map_test() {
 	mapAssigned = mapCreate //引用
 	mapAssigned["c"] = 3.3
 	fmt.Println(mapCreate)
+
+	mp1 := make(map[int][]int)
+	mp2 := make(map[int]*[]int)
+	fmt.Println(mp1, mp2)
+
+	//遍历map
+	scene := make(map[string]int)
+	scene["route"] = 66
+	scene["brazil"] = 4
+	scene["china"] = 960
+
+	//排序
+	var sceneList []string
+	for k, v := range scene {
+		fmt.Println(k, v)
+		sceneList = append(sceneList, k)
+	}
+	sort.Strings(sceneList)
+	fmt.Println(sceneList)
+
+	//delete 删除键
+	delete(scene, "brazil")
+	fmt.Println(scene)
+
+}
+
+//并发中使用map 只读是线程安全的，同时读写是线程不安全的
+// sync.Map
+/* sync.Map 有以下特性：
+1、无须初始化，直接声明即可。
+2、sync.Map 不能使用 map 的方式进行取值和设置等操作，而是使用 sync.Map 的方法进行调用，Store 表示存储，Load 表示获取，Delete 表示删除。
+3、使用 Range 配合一个回调函数进行遍历操作，通过回调函数返回内部遍历出来的值，Range 参数中回调函数的返回值在需要继续迭代遍历时，返回 true，终止迭代遍历时，返回 false。 */
+
+func sync_map_test() {
+	var scene sync.Map //直接声明 不能用make创建
+
+	//存
+	scene.Store("greece", 97)
+	scene.Store("london", 100)
+	scene.Store("egypt", 200)
+
+	//取
+	fmt.Println(scene.Load("london"))
+
+	//删除
+	scene.Delete("london")
+
+	//遍历
+	scene.Range(func(key, value interface{}) bool {
+		fmt.Println("interate:", key, value)
+		return true //继续
+	})
+
+}
+
+//列表
+//container/list 是双链表
+func list_test() {
+	list_a := list.New()
+	// var list_b list.List
+
+	list_a.PushFront("aaa")
+	list_a.PushBack(99)
+	// fmt.Println(list_a)
+
+	element := list_a.PushBack(101)
+
+	list_a.InsertAfter("qer", element)
+	list_a.InsertBefore("ccc", element)
+
+	list_a.Remove(element)
+
+	//遍历
+	for i := list_a.Front(); i != nil; i = i.Next() {
+		fmt.Println(i.Value)
+	}
+
 }
