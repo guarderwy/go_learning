@@ -47,6 +47,10 @@ func main() {
 
 	list_test()
 
+	for_test()
+
+	lambda_test()
+
 	// http.Handle("/", http.FileServer(http.Dir(".")))
 	// http.ListenAndServe(":8090", nil)
 }
@@ -96,9 +100,9 @@ func pointer_test() {
 	fmt.Printf("value : %s\n", value)
 
 	//flag 命令行输入
-	var mode = flag.String("a", "", "process mode")
+	/* var mode = flag.String("a", "", "process mode")
 	flag.Parse()
-	fmt.Println(*mode)
+	fmt.Println(*mode) */
 }
 
 //常量
@@ -290,4 +294,50 @@ func list_test() {
 		fmt.Println(i.Value)
 	}
 
+}
+
+//for
+func for_test() {
+	var i int
+	for {
+		if i > 10 {
+			break
+		}
+		i++
+	}
+	fmt.Println(i)
+
+	//只有一个循环条件的循环
+	for i <= 20 {
+		i++
+	}
+	fmt.Println(i)
+
+	//99乘法表
+	for y := 1; y <= 9; y++ {
+		for x := 1; x <= y; x++ {
+			fmt.Printf("%d*%d=%d ", x, y, x*y)
+		}
+		fmt.Println()
+	}
+}
+
+// 匿名函数&map
+func lambda_test() {
+	var skillParam = flag.String("skill", "", "skill to perform")
+	flag.Parse()
+	// fmt.Println(*skillParam)
+
+	var skill = map[string]func(){
+		"fire": func() {
+			fmt.Println("chicken fire")
+		},
+	}
+
+	if f, ok := skill[*skillParam]; ok {
+		fmt.Println(ok)
+		f()
+	} else {
+		fmt.Println("skill not found")
+	}
 }
