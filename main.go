@@ -6,8 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"os"
 	"sort"
 	"sync"
+	"time"
 )
 
 var a int = 100
@@ -50,6 +52,12 @@ func main() {
 	for_test()
 
 	lambda_test()
+
+	accumulate_test()
+
+	defer_test()
+
+	since_test()
 
 	// http.Handle("/", http.FileServer(http.Dir(".")))
 	// http.ListenAndServe(":8090", nil)
@@ -340,4 +348,62 @@ func lambda_test() {
 	} else {
 		fmt.Println("skill not found")
 	}
+}
+
+// 累加
+func lambda_test_accumulate(value int) func() int {
+	return func() int {
+		value++
+		return value
+	}
+}
+
+func accumulate_test(args ...interface{}) {
+	accumulate := lambda_test_accumulate(1)
+	fmt.Println(accumulate())
+
+	for _, arg := range args {
+		switch arg.(type) {
+		case int:
+			fmt.Println("type is int")
+		}
+	}
+}
+
+// defer延迟
+func defer_test() {
+	fmt.Println("defer-no")
+	defer fmt.Println("defer-1")
+	defer fmt.Println("defer-2")
+}
+
+func fileSize(filename string) int64 {
+	f, err := os.Open(filename)
+
+	if err != nil {
+		return 0
+	}
+
+	defer f.Close()
+
+	info, err := f.Stat()
+
+	if err != nil {
+		return 0
+	}
+
+	size := info.Size()
+	return size
+}
+
+// time since
+func since_test() {
+	start := time.Now()
+	sum := 0
+	for i := 0; i < 10000000; i++ {
+		sum++
+	}
+	elapsed := time.Since(start)
+	// elapsed := time.Now().Sub(start)
+	fmt.Println(elapsed)
 }
