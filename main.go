@@ -59,6 +59,8 @@ func main() {
 
 	since_test()
 
+	struct_test()
+
 	// http.Handle("/", http.FileServer(http.Dir(".")))
 	// http.ListenAndServe(":8090", nil)
 }
@@ -406,4 +408,72 @@ func since_test() {
 	elapsed := time.Since(start)
 	// elapsed := time.Now().Sub(start)
 	fmt.Println(elapsed)
+}
+
+//初始化结构体
+func struct_test() {
+
+	//1、键值对初始化结构体
+	type People struct {
+		name  string
+		child *People
+	}
+
+	relation := People{
+		name: "grand father",
+		child: &People{
+			name: "father",
+			child: &People{
+				name: "me",
+			},
+		},
+	}
+	fmt.Println(relation)
+	fmt.Println(relation.name)
+	fmt.Println(relation.child.name)
+
+	//2、使用多个值的列表初始化结构体(无需键)
+	type Address struct {
+		Province    string
+		City        string
+		ZipCode     int
+		PhoneNumber string
+	}
+
+	addr := Address{
+		"Fu Jian",
+		"Fu Zhou",
+		350000,
+		"13000000000",
+	}
+	fmt.Println(addr)
+	fmt.Println(addr.ZipCode)
+
+	// 3、初始化匿名结构体
+	msg := &struct {
+		id   int
+		data string
+	}{
+		1024,
+		"hello",
+	}
+	fmt.Println(msg)
+	fmt.Println(msg.id)
+
+	// 4、结构体内嵌
+	type innerS struct {
+		int1, int2 int
+	}
+
+	type outerS struct {
+		b int
+		c float32
+		int
+		innerS
+	}
+
+	outer := new(outerS)
+	outer.int1 = 1
+	outer.int2 = 2
+	fmt.Println(outer)
 }
