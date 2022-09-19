@@ -2,11 +2,18 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"container/list"
+	"demo/model"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"math"
+	"math/rand"
 	"os"
+	"regexp"
 	"sort"
 	"sync"
 	"time"
@@ -60,6 +67,36 @@ func main() {
 	since_test()
 
 	struct_test()
+
+	link_list_test()
+
+	io_test()
+
+	interface_test()
+
+	assert_test()
+
+	sort_test()
+
+	interface_more_test()
+
+	error_test()
+
+	package_test()
+
+	regexp_test()
+
+	time_test()
+
+	lock_test()
+
+	chan_test()
+
+	chan_for_test()
+
+	play_ball_test()
+
+	chan_buffer_test()
 
 	// http.Handle("/", http.FileServer(http.Dir(".")))
 	// http.ListenAndServe(":8090", nil)
@@ -476,4 +513,389 @@ func struct_test() {
 	outer.int1 = 1
 	outer.int2 = 2
 	fmt.Println(outer)
+
+	//5、初始化内嵌结构体
+	type Wheel struct {
+		Size int
+	}
+
+	type Car struct {
+		Wheel
+		Engine struct {
+			Power int
+			Type  string
+		}
+	}
+
+	c := Car{
+		Wheel: Wheel{
+			Size: 18,
+		},
+
+		Engine: struct {
+			Power int
+			Type  string
+		}{
+			1,
+			"engine",
+		},
+	}
+
+	fmt.Println(c)
+}
+
+// 链表、用struct定义链表
+func link_list_test() {
+	//1、单链表
+	type Node struct {
+		data int
+		next *Node
+	}
+
+	head := new(Node)
+	head.data = 1
+
+	node1 := new(Node)
+	node1.data = 2
+	head.next = node1
+
+	node2 := new(Node)
+	node2.data = 3
+	node1.next = node2
+
+	for head != nil {
+		fmt.Println(*head)
+		head = head.next
+	}
+
+	//2、单链表插入
+	var head2 = new(Node)
+	head2.data = 0
+	var tail *Node
+	tail = head2
+	for i := 1; i < 10; i++ {
+		var node = Node{data: i}
+		// node.next = tail //头插法
+		(*tail).next = &node //尾插法
+		tail = &node
+	}
+	for tail != nil {
+		fmt.Println(*tail)
+		tail = tail.next
+	}
+
+}
+
+// io测试
+func io_test() {
+	data := []byte("golang io test")
+	rd := bytes.NewReader(data)
+	r := bufio.NewReader(rd)
+	var buf [128]byte
+	n, err := r.Read(buf[:])
+	fmt.Println(string(buf[:n]), n, err)
+}
+
+//interface
+//1、接口的方法与实现接口的类型方法格式一致
+//2、接口中所有方法均被实现
+type DataWriter interface {
+	WriteData(data interface{}) error
+	CanWrite() bool
+}
+
+type file struct {
+}
+
+func (d *file) WriteData(data interface{}) error {
+	fmt.Println("WriteData:", data)
+	return nil
+}
+
+func (d *file) CanWrite() bool {
+	return false
+}
+
+func interface_test() {
+	f := new(file)
+	var writer DataWriter
+	writer = f
+	writer.WriteData("test data data1")
+}
+
+//assert断言
+func assert_test() {
+	var x interface{}
+	x = 10
+	value, ok := x.(int)
+	fmt.Println(value, ok)
+}
+
+//sort
+type MyStringList []string
+
+func (m MyStringList) Len() int {
+	return len(m)
+}
+
+func (m MyStringList) Less(i, j int) bool {
+	return m[i] < m[j]
+}
+
+func (m MyStringList) Swap(i, j int) {
+	m[i], m[j] = m[j], m[i]
+}
+
+func sort_test() {
+	names := MyStringList{
+		"3. Triple Kill",
+		"5. Penta Kill",
+		"2. Double Kill",
+		"4. Quadra Kill",
+		"1. First Blood",
+	}
+
+	sort.Sort(names)
+
+	for _, v := range names {
+		fmt.Printf("%s\n", v)
+	}
+
+	//或者去实现方法
+	names1 := sort.StringSlice{
+		"3. Triple Kill",
+		"5. Penta Kill",
+		"2. Double Kill",
+		"4. Quadra Kill",
+		"1. First Blood",
+	}
+	sort.Sort(names1)
+	for _, v := range names1 {
+		fmt.Printf("%s\n", v)
+	}
+
+	//或者用已封装方法
+	names2 := []string{
+		"3. Triple Kill",
+		"5. Penta Kill",
+		"2. Double Kill",
+		"4. Quadra Kill",
+		"1. First Blood",
+	}
+	sort.Strings(names2)
+	for _, v := range names1 {
+		fmt.Printf("%s\n", v)
+	}
+
+}
+
+//接口嵌套
+type device struct{}
+
+func (d *device) Write(p []byte) (n int, err error) {
+	return 0, nil
+}
+
+func (d *device) Close() error {
+	return nil
+}
+
+func interface_more_test() {
+	var wc io.WriteCloser = new(device)
+	wc.Write(nil)
+	wc.Close()
+
+	var writeOnly io.Writer = new(device)
+	writeOnly.Write(nil)
+
+	/* var aaa interface{} = "1"
+	b, isInt := aaa.(int)
+	fmt.Println(b, isInt)
+	errors.New()
+	*/
+}
+
+//error
+func error_msg() (int, error) {
+	return 1, errors.New("no known error......")
+}
+
+type dualError struct {
+	Num int
+	msg string
+}
+
+func (d dualError) Error() string {
+	return fmt.Sprintf("Wrong, because \"%d\"", d.Num)
+}
+
+func error_msg1() (int, error) {
+	return 1, dualError{Num: 100}
+}
+
+func error_test() {
+	// 1、errors.New
+	result, err := error_msg()
+	fmt.Println(result, err)
+
+	// 2、自定义报错
+	ret, err1 := error_msg1()
+	fmt.Println(ret, err1)
+}
+
+//package person
+func package_test() {
+	person := model.NewPerson("guarder")
+	person.SetAge(30)
+	person.SetSal(100000000.00)
+	fmt.Println(person, person.Name, person.GetAge(), person.GetSal())
+
+	animal := model.NewAnimal("dog")
+	fmt.Println(animal.Name)
+	animal.SetAge(2)
+	fmt.Println(animal.GetAge())
+}
+
+//regexp
+func regexp_test() {
+	buf := "abc azc a7c aac 888 a9c  tac"
+	reg1 := regexp.MustCompile(`a.c`)
+	result1 := reg1.FindAllStringSubmatch(buf, -1)
+	fmt.Println(result1)
+}
+
+//time
+func time_test() {
+	now := time.Now()
+	fmt.Printf("current time:%v\n", now)
+	fmt.Println(now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+	fmt.Printf("%d-%02d-%02d %02d:%02d:%02d\n", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
+	fmt.Println(now.Month(), int(now.Month()))
+
+	//时间戳
+	timestamp1 := now.Unix()
+	timestamp2 := now.UnixNano() //纳秒
+	fmt.Println(timestamp1, timestamp2)
+
+	//时间戳格式化
+	timeObj := time.Unix(timestamp1, 0)
+	fmt.Printf("%d-%02d-%02d %02d:%02d:%02d\n", timeObj.Year(), timeObj.Month(), timeObj.Day(), timeObj.Hour(), timeObj.Minute(), timeObj.Second())
+
+	//周几
+	fmt.Println(now.Weekday())
+
+	//add函数
+	one_hour_later := now.Add(time.Hour) //1小时后
+	fmt.Println(one_hour_later)
+
+	//定时器
+	/* ticker := time.Tick(time.Second)
+	for i := range ticker {
+		fmt.Println(i)
+	} */
+
+	// 格式化
+	//需要注意的是Go语言中格式化时间模板不是常见的Y-m-d H:M:S 而是使用Go语言的诞生时间 2006 年 1 月 2 号 15 点 04 分 05 秒
+	fmt.Println(now.Format("2006-01-02 15:04:05"))
+
+	//字符串转time
+	var layout string = "2006-01-02 15:04:05"
+	var timeStr string = "2022-10-01 10:01:00"
+	timeObj1, _ := time.Parse(layout, timeStr)
+	timeObj2, _ := time.ParseInLocation(layout, timeStr, time.Local)
+	fmt.Println(timeObj1, timeObj1.Unix(), timeObj2, timeObj2.Unix())
+
+	/* var input string
+	fmt.Scanln(&input) */
+}
+
+//goroutine
+func lock_test() {
+	model.Lock_test()
+}
+
+//chan
+func chan_test() {
+	ch := make(chan int)
+	go func() {
+		fmt.Println("start goroutine")
+		ch <- 0
+		fmt.Println("exit goroutine")
+	}()
+	fmt.Println("wait goroutine")
+	<-ch
+	fmt.Println("all done")
+}
+
+//chan foreach
+func chan_for_test() {
+	ch := make(chan int)
+	go func() {
+		for i := 3; i >= 0; i-- {
+			ch <- i
+			// time.Sleep(time.Second)
+		}
+	}()
+
+	for data := range ch {
+		fmt.Println(data)
+		if data == 0 {
+			break
+		}
+	}
+
+	close(ch) //关闭通道
+
+	data1, ok := <-ch
+	fmt.Println(data1, ok) //可判断通道是否成功关闭，false为关闭了
+}
+
+//模拟网球
+var wg sync.WaitGroup
+
+func play_ball_test() {
+	court := make(chan int)
+	wg.Add(2)
+
+	go player("Mike", court)
+	go player("guarder", court)
+
+	//发球
+	court <- 1
+
+	wg.Wait() //等待结束
+}
+
+func player(name string, court chan int) {
+	defer wg.Done() // 在函数退出时调用Done 来通知main 函数工作已经完成
+
+	for {
+		ball, ok := <-court
+		if !ok {
+			fmt.Printf("Player %s Won\n", name)
+			return
+		}
+
+		n := rand.Intn(100) //选随机数判断是否丢球
+		if n%13 == 0 {
+			fmt.Printf("Player %s Missed\n", name)
+			close(court)
+			return
+		}
+
+		fmt.Printf("Player %s Hit %d\n", name, ball)
+		ball++
+		court <- ball
+	}
+}
+
+//缓冲通道 make(chan int, 3) ,缓冲元素3个
+func chan_buffer_test() {
+	ch := make(chan int, 3)
+	fmt.Println(len(ch))
+
+	ch <- 1
+	ch <- 2
+	ch <- 3
+	fmt.Println(len(ch))
 }
